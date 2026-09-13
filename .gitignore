@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+.env
+airflow/logs/
+airflow/plugins/__pycache__/
+dbt_agro_meteo/target/
+dbt_agro_meteo/logs/
+dbt_agro_meteo/dbt_packages/
+.DS_Store

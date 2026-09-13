@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: stg_production_agricole
+    description: "Données de production agricole nettoyées (Sénégal, Mali, Burkina Faso)"
+    columns:
+      - name: pays
+        description: "Pays producteur"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Senegal', 'Mali', 'Burkina Faso']
+      - name: surface_ha
+        description: "Surface cultivée, en hectares"
+        tests:
+          - not_null
+      - name: rendement
+        description: "Rendement (production / surface)"
+        tests:
+          - not_null
+
+  - name: stg_meteo_journaliere
+    description: "Données météo journalières nettoyées (6 villes d'Afrique de l'Ouest)"
+    columns:
+      - name: ville
+        description: "Ville de mesure"
+        tests:
+          - not_null
+      - name: date
+        description: "Date de la mesure"
+        tests:
+          - not_null
+      - name: precipitation_mm
+        description: "Précipitations quotidiennes en mm"
+        tests:
+          - not_null

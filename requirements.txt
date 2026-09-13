@@ -1,0 +1,6 @@
+pandas
+requests
+SQLAlchemy
+psycopg2-binary
+dbt-core
+dbt-sqlite
