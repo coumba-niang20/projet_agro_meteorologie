@@ -7,7 +7,7 @@ Utilise SQLAlchemy, qui gère la création de la table si elle n'existe pas.
 
 import os
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 # --- Configuration de connexion -----------------------------------------
 # Deux modes disponibles :
@@ -23,7 +23,17 @@ DB_USER = os.getenv("PG_USER", "agro")
 DB_PASSWORD = os.getenv("PG_PASSWORD", "agro_pwd")
 DB_HOST = os.getenv("PG_HOST", "localhost")
 DB_PORT = os.getenv("PG_PORT", "5434")
-DB_NAME = os.getenv("PG_DATABASE", "agro_meteo")
+DB_DATABASE = os.getenv("PG_DATABASE", "agro_meteo")
+
+# Vues dbt connues qui dépendent directement d'une table source. Si l'une
+# de ces tables doit être rechargée (if_exists="replace"), la vue
+# correspondante est supprimée d'abord (CASCADE) puis recréée par le
+# prochain `dbt run` — sans ça, PostgreSQL refuse le DROP TABLE tant que
+# la vue existe (erreur DependentObjectsStillExist).
+DEPENDENT_VIEWS = {
+    "production_agricole": ["stg_production_agricole"],
+    "meteo_journaliere": ["stg_meteo_journaliere"],
+}
 
 
 def get_engine():
@@ -31,8 +41,27 @@ def get_engine():
     if USE_SQLITE:
         # Crée (ou ouvre) un fichier agro_meteo.db dans le dossier courant
         return create_engine("sqlite:///agro_meteo.db")
-    url = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    url = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_DATABASE}"
     return create_engine(url)
+
+
+def drop_dependent_views(engine, table_name: str) -> None:
+    """
+    Supprime (CASCADE) les vues dbt connues qui dépendent de `table_name`,
+    pour permettre à pandas de faire un DROP TABLE / CREATE TABLE propre
+    avec if_exists="replace". N'a aucun effet en SQLite (pas de vues dbt
+    matérialisées de la même façon, et le problème ne s'y pose pas).
+    Sans effet non plus si aucune vue de ce nom n'existe encore.
+    """
+    if USE_SQLITE:
+        return
+    views = DEPENDENT_VIEWS.get(table_name, [])
+    if not views:
+        return
+    with engine.begin() as conn:
+        for view_name in views:
+            conn.execute(text(f'DROP VIEW IF EXISTS "{view_name}" CASCADE'))
+            print(f"[load] Vue dépendante supprimée avant rechargement : {view_name}")
 
 
 def load_to_postgres(df: pd.DataFrame, table_name: str, if_exists: str = "replace") -> None:
@@ -44,6 +73,8 @@ def load_to_postgres(df: pd.DataFrame, table_name: str, if_exists: str = "replac
       - "append"  : ajoute les lignes sans supprimer l'existant (pour la prod)
     """
     engine = get_engine()
+    if if_exists == "replace":
+        drop_dependent_views(engine, table_name)
     print(f"[load] Écriture de {len(df)} lignes dans la table '{table_name}' "
           f"(mode={if_exists})...")
     df.to_sql(table_name, engine, if_exists=if_exists, index=False, chunksize=5000)
@@ -70,4 +101,6 @@ if __name__ == "__main__":
     df_meteo_clean = transform_meteo(df_meteo)
     load_to_postgres(df_meteo_clean, "meteo_journaliere")
 
-    print(f"\nLes deux tables sont chargées dans PostgreSQL ({DB_HOST}:{DB_PORT}/{DB_NAME}).")
+    print()
+    print(f"Les deux tables sont chargées dans PostgreSQL ({DB_HOST}:{DB_PORT}/{DB_DATABASE}).")
+    print("Pensez à relancer 'dbt run' pour reconstruire les vues/tables dbt supprimées.")
