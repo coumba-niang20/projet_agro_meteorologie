@@ -114,6 +114,19 @@ services:
       retries: 50
       start_period: 30s
     restart: always
+  postgres-agro-meteo:
+    image: postgres:15
+    container_name: postgres-agro-meteo
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agro
+      POSTGRES_PASSWORD: agro_pwd
+      POSTGRES_DB: agro_meteo
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_agro_data:/var/lib/postgresql/data
+
 
   airflow-webserver:
     <<: *airflow-common
@@ -287,3 +300,4 @@ services:
 
 volumes:
   postgres-db-volume:
+  postgres_agro_data:

@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: agro_meteo_src
-    schema: main
+    schema: public
     tables:
       - name: production_agricole
       - name: meteo_journaliere

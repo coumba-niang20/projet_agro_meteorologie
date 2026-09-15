@@ -17,12 +17,12 @@ from sqlalchemy import create_engine
 #   - USE_SQLITE = False : PostgreSQL, à utiliser une fois la connexion
 #                           réglée (identifiants via variables d'env)
 
-USE_SQLITE = True
+USE_SQLITE = False
 
-DB_USER = os.getenv("PG_USER", "postgres")
-DB_PASSWORD = os.getenv("PG_PASSWORD", "postgres")
+DB_USER = os.getenv("PG_USER", "agro")
+DB_PASSWORD = os.getenv("PG_PASSWORD", "agro_pwd")
 DB_HOST = os.getenv("PG_HOST", "localhost")
-DB_PORT = os.getenv("PG_PORT", "5432")
+DB_PORT = os.getenv("PG_PORT", "5434")
 DB_NAME = os.getenv("PG_DATABASE", "agro_meteo")
 
 
@@ -70,6 +70,4 @@ if __name__ == "__main__":
     df_meteo_clean = transform_meteo(df_meteo)
     load_to_postgres(df_meteo_clean, "meteo_journaliere")
 
-    print()
-    print("Les deux tables sont chargées. Base : agro_meteo.db (ou PostgreSQL "
-          "selon USE_SQLITE dans ce fichier).")
+    print(f"\nLes deux tables sont chargées dans PostgreSQL ({DB_HOST}:{DB_PORT}/{DB_NAME}).")

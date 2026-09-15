@@ -8,3 +8,14 @@ dbt_agro_meteo/target/
 dbt_agro_meteo/logs/
 dbt_agro_meteo/dbt_packages/
 .DS_Store
+
+# Copie dbt pour Airflow (contient un profiles.yml avec mot de passe)
+airflow/dags/dbt_agro_meteo/profiles.yml
+airflow/dags/dbt_agro_meteo/target/
+airflow/dags/dbt_agro_meteo/logs/
+airflow/dags/dbt_agro_meteo/dbt_packages/
+
+# Environnement Airflow local
+airflow/.env
+airflow/logs/
+airflow/plugins/

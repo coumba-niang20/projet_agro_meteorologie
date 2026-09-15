@@ -1,6 +1,6 @@
-pandas
+pandas==2.2.2
 requests
 SQLAlchemy
 psycopg2-binary
 dbt-core
-dbt-sqlite
+dbt-postgres

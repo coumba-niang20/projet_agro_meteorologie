@@ -15,6 +15,15 @@ from airflow.operators.bash import BashOperator
 from extract import extract_agricole, extract_meteo_from_csv
 from transform import transform_agricole, transform_meteo
 from load import load_to_postgres
+import os
+
+# Ces variables surchargent les valeurs par défaut de load.py, spécifiquement
+# pour l'exécution à l'intérieur des conteneurs Airflow (réseau Docker interne)
+os.environ.setdefault("PG_HOST", "postgres-agro-meteo")
+os.environ.setdefault("PG_PORT", "5432")
+os.environ.setdefault("PG_USER", "agro")
+os.environ.setdefault("PG_PASSWORD", "agro_pwd")
+os.environ.setdefault("PG_DATABASE", "agro_meteo")
 
 CSV_AGRICOLE = "/opt/airflow/dags/data/hvstat_africa_data_v1.0.csv"
 CSV_METEO = "/opt/airflow/dags/data/meteo_afrique_ouest_2010_2022.csv"
